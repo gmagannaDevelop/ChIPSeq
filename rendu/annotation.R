@@ -1,8 +1,11 @@
 
+# Install BiocManager, an interface to BioConductor, 
+# an R repository for biological software
 if (!requireNamespace("BiocManager", quietly = TRUE)){
   install.packages("BiocManager")
 }
 
+# declare dependencies
 .bioc.dependencies <- c(
   "ChIPpeakAnno",
   "GenomicFeatures",
@@ -13,6 +16,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE)){
   "KEGG.db"
 )
 
+# load dependencies and install them if they are missing
 suppressWarnings(
   .missing.deps <- 
     sapply(.bioc.dependencies, function(x){ !require(x, character.only = T)})
@@ -46,8 +50,8 @@ over <-
   getEnrichedGO(annotatedPeak[index], feature_id_type="entrez_id",
                 orgAnn="org.Sc.sgd.db", maxP=0.05, minGOterm=5, condense=T)
 
-# biological process
+# save biological process
 write.csv(over$bp,"biologicalprocess.csv", row.names = FALSE) 
-# molecular function
+# save molecular function
 write.csv(over$mf,"molecularfonction.csv", row.names = FALSE) 
 
