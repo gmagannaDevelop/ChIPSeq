@@ -1,6 +1,14 @@
 # ChIPSeq
 Projet Final UE Analyse Statistique de Données *Omiques
 
+## Dependencies
+
+This project relies on :
+* The [fish shell](https://fishshell.com/)
+* [R](https://www.r-project.org/)
+
+The fish shell can be directly installed using `apt` on Debian-based GNU/Linux distributions and `brew` on macOS.
+Windows has not been tested, and no support is inteded for that platform.
 
 ## Running bpeaks in parallel
 ```bash
