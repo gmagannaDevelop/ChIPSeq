@@ -1,0 +1,138 @@
+---
+title: "Analyse ChIP-Seq de la protéine PDR1 chez Saccaromyces Cerevisiae"
+author: "Gustavo Magaña López"
+date: "20/12/2021"
+output:
+  pdf_document:
+    toc: yes
+header-includes:
+    - \usepackage{fancyhdr}
+    - \addtolength{\headheight}{1.0cm} % make more space for the header
+    - \pagestyle{fancyplain} % use fancy for all pages except chapter start
+    - \rhead{\includegraphics[height=1.2cm]{/home/gml/Documents/Master/M2_AMI2B/Omiques/projet/rendu/logo.png}} % right logo
+    - \renewcommand{\headrulewidth}{0pt} % remove rule below header
+bibliography: [packages.bib, articles.bib]
+nocite: '@*'
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
+.annotation.pkgs <- c(
+  "ChIPpeakAnno",
+  "GenomicFeatures",
+  "TxDb.Scerevisiae.UCSC.sacCer3.sgdGene",
+  "org.Sc.sgd.db",
+  "org.Sc.sgd.db",
+  "GO.db"
+)
+knitr::write_bib(c(.annotation.pkgs, 'bPeaks', 'knitr', 'rmarkdown'), file = 'packages.bib')
+```
+
+## Introduction
+
+_Saccharomyces cerevisiae_ est une levure omniprésente dans le monde humain. 
+Elle a une longue histoire qui accompagne celle de notre espèce. Elle est utilisé
+depuis l'antiquité, notamment pour l'élaboration de pain et bière. 
+Ses applications d'utilité se sont diversifiés. Il n'est pas étonnant que le génome 
+de cet eucaryote unicellulaire modèle fait parti de ceux des espèces eucaryotes 
+les plus étudiés et les mieux connus à ce jour. 
+
+
+La régulation des gènes chez les eucaryotes est majoritairement opérée par l'action 
+de facteurs de transcription qui se lient à l'ADN à proximité ou à l'intérieur 
+de leurs gènes cibles. C'est justement ce mécanisme de régulation qui est exploité
+par la technologie **ChIPSeq** qui peut être résumée en quatre étapes : 
+
+* l'**immunoprécipitation** à la chromatine, processus permettant de sélectionner les séquences liées à une
+protéine d'intérêt.
+* Un **séquençage à haut débit** (ex. Illumina) 
+* Traitement des données de séquençage, à savoir le filtrage des reads de
+mauvaise qualité et l'alignement de ces séquences contre le génome de référence.
+L'hypothèse est qu'un nombre plus important de reads sera obtenu près des séquences
+auxquelles la protéine d'intérêt s'est fixée, ce qui produit des "peaks" autour des
+séquences pertinentes (qui seraient les sites de promotion en amont des gènes
+régulés par la protéine en question).
+* Le **peak-calling**, processus permettant de séparer les _vrais peaks_ des
+_peaks_ liés à des nombreux biais qui peuvent altérer les résultats 
+(sur-amplification PCR, mauvaise qualité des reads, régions à motifs répétés, etc).
+
+
+Notre protéine d'intérêt **PDR1** est considérée comme un régulateur positif de 
+protéines pouvant être impliquées dans la perméabilité cellulaire. Ce projet se 
+propose de rechercher des régions génomiques candidates en tant que site
+promoteur de gènes régulés par la protéine PDR1 chez __S. cerevisiae__. 
+L'objectif est de trouver à partir d'outils de référence dans l'analyse ChIPSeq 
+une démarche optimisée pour la recherche de candidats et de comparer ces 
+résultats aux informations connues pour cet organisme afin de la valider. 
+Une quantité limitée de vrai pics est attendue après notre analyse peak-calling, 
+car les facteurs de transcription sont généralement assez spécifiques.
+
+\newpage
+## Matériels et Méthodes
+
+### Jeu de données
+Le jeu de données utilisé correspond à celui centré sur __S. cerevisiae__ 
+utilisé par l'équipe ayant réalisé l'article de description du logiciel **bPeaks** [@R-bPeaks].
+Pour plus de détails, veuillez consulter l'article original.
+Le jeu de données inclut donc huit fichiers, composés de: 
+
+* le génome de l'organisme 
+  * `genome_cerevisiae_SGD.fasta`, `genome_cerevisiae_SGD.fasta.fai` 
+* les annotations 
+  * `cerevisiae_geneInfo.gff3`, `cerevisiae_geneInfo.gff3.fai`
+* le mapping de l'échantillon contrôle indexé 
+  * `INPUT_ChIP-Seq_PDR1.bam`, `INPUT_ChIP-Seq_PDR1.bai`
+* le mapping de l'échantillon principal **IP** indexé 
+  * `IP_ChIP-Seq_PDR1.bam`, `IP_ChIP-Seq_PDR1.bai`
+
+### Description des logiciels utilisés
+
+Le logiciel bPeaks prend en compte les résultats obtenus des reads mapping (fichiers BAM)
+des échantillons enrichis par la protéine d'intérêt et ceux du test contrôle obtenu sans cet
+enrichissement, puis propose de filtrer les différents pics en prenant en considération quatre
+paramètres sélectifs : 
+
+* valeur du paramètre multiplicatif qui doit être combiné avec la valeur de la
+profondeur de lecture moyenne à l'échelle du génome pour l'échantillon IP 
+* valeur du paramètre multiplicatif qui doit être combiné avec la valeur de 
+la profondeur de lecture moyenne à l'échelle du
+génome pour l'échantillon contrôle ; 
+* seuil pour considérer les valeurs $log_2(\frac{IP}{contr\hat{o}le})$ comme
+suffisamment importantes pour être intéressantes ;
+* seuil pour considérer $\frac{log_2(IP) + log_2(contr\hat{o}le)}{2}$ comme 
+suffisamment important pour être intéressant. Ce paramètre garantit que
+la région génomique analysée a une couverture de séquençage suffisante pour être fiable.
+Il est possible de lancer plusieurs analyses successives en modifiant la valeur des paramètres
+désirés, ce qui permet à terme de retenir les valeurs de paramètres optimaux maximisant la détection
+de pics crédibles situés en amont de gène (et non-pas intragéniques) et distinct des biais décelés par
+le contrôle.
+
+L'outil peak-motifs du RSAT permet de détecter des séquences consensus plus ou moins
+fiables correspondant aux sites précis de liaison de la protéine d'intérêt aux régions génomiques
+candidates. Ces motifs sont confrontés à des tests statistiques afin de s'assurer de la crédibilité des
+résultats obtenus. 
+
+Le logiciel IGV propose d'afficher un génome annoté et de présenter le résultat d'alignement
+de l'ensemble de reads à partir de fichiers BAM où se trouve les résultats d'un read mapping. Il offre
+un large panel de fonctionnalité permettant la visualisation de ces résultats, et notamment l'affichage
+des "peaks" représentant la forte représentation de reads alignés sur une séquence génomique
+donnée du génome de référence. Il est ainsi possible de situer des régions promotrices et des gènes
+connus et d'observer le résultat de l'alignement à ces emplacements spécifiques. Les reads sont
+affichés dans leur sens de lecture sous le génome de référence aux niveaux des régions où ils
+s'alignent.
+
+Les scripts ont été élaborés sur Rstudio avec les package bpeaks et tinyverse. Le
+téléchargement du shell Fish est nécéssaire pour l'exécution du script, qui a été réalisé en
+collaboration avec Gustavo Magana Lopez.
+
+\newpage
+
+
+## Résultats
+
+
+
+
+\newpage
+## References
