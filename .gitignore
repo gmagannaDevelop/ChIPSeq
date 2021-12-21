@@ -6,16 +6,19 @@
 /**/*bed
 /**/INPUT_genomeCoverage.txt
 /**/IP_genomeCoverage.txt
+/**/cerevisiae
 
 # bPeaks intermediary output
 /**/*.pdf
+/**/bPeaks*
 
 # R ignores
+/**/*.Robject
 .Rproj.user
 .Rhistory
 
 # intermediary scripts
-/**/minimal-bpeaks.R
+rendu/minimal-bpeaks.R
 
 # parallel intermediary directories
 /**/test*
