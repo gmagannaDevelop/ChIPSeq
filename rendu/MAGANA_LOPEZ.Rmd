@@ -3,8 +3,7 @@ title: "Analyse ChIP-Seq de la protéine PDR1 chez Saccaromyces Cerevisiae"
 author: "Gustavo Magaña López"
 date: "20/12/2021"
 output:
-  pdf_document:
-    toc: yes
+  bookdown::pdf_document2
 header-includes:
     - \usepackage{fancyhdr}
     - \addtolength{\headheight}{1.0cm} % make more space for the header
@@ -15,6 +14,8 @@ bibliography: [packages.bib, articles.bib]
 nocite: '@*'
 ---
 
+pdf_document:
+    toc: yes
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F, warning = F, message = F)
@@ -26,7 +27,19 @@ knitr::opts_chunk$set(echo = F, warning = F, message = F)
   "org.Sc.sgd.db",
   "GO.db"
 )
-knitr::write_bib(c(.annotation.pkgs, 'bPeaks', 'knitr', 'rmarkdown'), file = 'packages.bib')
+knitr::write_bib(
+  c(.annotation.pkgs, 'bPeaks', 'knitr', 
+    'rmarkdown', 'tidyverse', "here",
+    'gridExtra', 'grid', 'cowplot', 'magick'
+    ), 
+  file = 'packages.bib'
+)
+library(here)
+library(grid)
+library(cowplot)
+library(gridExtra)
+library(png)
+library(magrittr)
 ```
 
 ## Introduction
@@ -130,9 +143,46 @@ collaboration avec Gustavo Magana Lopez.
 
 
 ## Résultats
+```{r results.import}
+source(here("rendu/analyse_results.R"))
+```
 
+```{r igv, }
+snq2 <- ggdraw() + draw_image(readPNG("snq2.png"))
+pdr5 <- ggdraw() + draw_image(readPNG("pdr5.png"))
 
+grid.arrange(snq2, pdr5, ncol=1, nrow=2)
+```
+
+```{r figures, fig.cap="ô à è"}
+grid.arrange(plot1, plot2, ncol=1, nrow=2)
+```
 
 
 \newpage
-## References
+## Références
+
+<div id="refs"></div>
+
+## Annexe
+
+See \@ref(tab:table1)
+
+```{r table1}
+first.reg <- s.param.reg$coefficients
+colnames(first.reg)[4] <- 'p value'
+first.reg %>% 
+  as.data.frame() %>% 
+  dplyr::mutate_if(is.numeric, funs(as.character(signif(., 3)))) %>% 
+  knitr::kable(caption="Estimation des coefficients pour prédire `before.ratio`")
+```
+
+```{r table2}
+second.reg <- s.reg.total$coefficients
+colnames(second.reg)[4] <- 'p value'
+second.reg %>% 
+  as.data.frame() %>% 
+  dplyr::mutate_if(is.numeric, funs(as.character(signif(., 3)))) %>% 
+  knitr::kable(caption="Estimation des coefficients pour prédire `bPeaksNumber`")
+```
+
