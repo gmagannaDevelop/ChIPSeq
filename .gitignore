@@ -1,3 +1,32 @@
+# visual studio directories
+/**/.vscode
+
+# data files :
+/**/*.tar.gz
+/**/*bed
+/**/INPUT_genomeCoverage.txt
+/**/IP_genomeCoverage.txt
+
+# bPeaks intermediary output
+/**/*.pdf
+
+# R ignores
+.Rproj.user
+.Rhistory
+
+# intermediary scripts
+/**/minimal-bpeaks.R
+
+# parallel intermediary directories
+/**/test*
+/**/outermost
+/**/joint
+/**/ultimate
+/**/antho
+/**/full
+
+
+  ### GITHUB TEMPLATE
 # History files
 .Rhistory
 .Rapp.history
