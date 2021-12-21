@@ -1,5 +1,8 @@
 
 function parallel_bpeaks
+    # Check number of arguments, we expect two :
+    # 'params.fish' -> a file containing necessary parameters
+    # 'experimentDir' -> a directory name to isolate bPeak's output
     if test (count $argv) -ne 2
         echo parallel_bpeaks
         echo \nusage:
@@ -18,6 +21,7 @@ function parallel_bpeaks
     else
         set --path paramsFile $argv[1]
         set --path outDir $argv[2]
+        # check that outDir does not exist and paramsFile exists
         if not test -d $outDir; and test -f $paramsFile
             mkdir $outDir
             # get parameters from our paramsFile
@@ -34,9 +38,10 @@ function parallel_bpeaks
                 # data gathering script
                 echo "cat $param/bPeaks_bPeaks_parameterSummary.txt >> gathered.txt" >> $gatherScript
             end
+            # remove redundant lines (duplicate headers)
             echo "awk '!a[\$0]++' gathered.txt >> results.txt" >> $gatherScript
                         
-
+        # if passed parameters are invalid, display an error message
         else
             echo ERROR, check parameters
             echo "is '$paramsFile' a regular file, containing the parameter grid?"
